@@ -43,7 +43,7 @@ const getUser = (req, res) => {
         return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
       }
       return res
-        .status(BAD_REQUEST)
+        .status(SERVER_ERROR)
         .send({ message: "An error occurred while retrieving the user." });
     });
 };

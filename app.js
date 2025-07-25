@@ -1,8 +1,8 @@
 const express = require("express");
-const app = express();
+const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
 
-const mongoose = require("mongoose");
+const app = express();
 
 const { PORT = 3001 } = process.env;
 
@@ -11,8 +11,8 @@ mongoose
   .then(() => {
     console.log("Connected to DB");
   })
-  .catch(() => {
-    console.error;
+  .catch((err) => {
+    console.error("DB connection error", err);
   });
 
 app.use(express.json());

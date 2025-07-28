@@ -45,7 +45,11 @@ const deleteItem = (req, res) => {
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
-      return res.status(SERVER_ERROR).send({ message: err.message });
+      return res
+        .status(SERVER_ERROR)
+        .send({
+          message: "An error has occurred while performing this action.",
+        });
     });
 };
 

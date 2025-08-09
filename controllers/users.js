@@ -31,7 +31,9 @@ const createUser = (req, res) => {
       return User.create({ name, avatar, email, password: hash });
     })
     .then((user) => {
-      res.status(201).send(user);
+      const userObject = user.toObject();
+      delete userObject.password;
+      res.status(201).send(userObject);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -48,8 +50,8 @@ const createUser = (req, res) => {
     });
 };
 
-const getUser = (req, res) => {
-  const { userId } = req.params;
+const getCurrentUser = (req, res) => {
+  const userId = req.user._id;
   User.findById(userId)
     .orFail()
     .then((user) => res.status(200).send(user))
@@ -91,4 +93,40 @@ const login = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUser, login };
+const updateCurrentUser = (req, res) => {
+  const { name, avatar } = req.body;
+  const userId = req.user._id;
+
+  User.findByIdAndUpdate(
+    userId,
+    { name, avatar },
+    { new: true, runValidators: true }
+  )
+    .orFail()
+    .then((updatedUser) => {
+      res.status(200).send(updatedUser);
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({
+          message: "Invalid data. Please make sure all input are valid",
+        });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "User not found" });
+      }
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid user" });
+      }
+      return res.status(SERVER_ERROR).send({ message: "Server Error" });
+    });
+};
+
+module.exports = {
+  getUsers,
+  createUser,
+  getCurrentUser,
+  login,
+  updateCurrentUser,
+};

@@ -1,5 +1,15 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 const User = require("../models/user");
-const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
+const {
+  BAD_REQUEST,
+  NOT_FOUND,
+  SERVER_ERROR,
+  CONFLICT,
+} = require("../utils/errors");
+
+const { JWT_SECRET } = require("../utils/config");
 
 const getUsers = (req, res) => {
   User.find({})
@@ -13,20 +23,28 @@ const getUsers = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, avatar } = req.body;
+  const { name, avatar, email, password } = req.body;
 
-  User.create({ name, avatar })
-    .then((user) => res.status(201).send(user))
+  bcrypt
+    .hash(req.body.password, 10)
+    .then((hash) => {
+      return User.create({ name, avatar, email, password: hash });
+    })
+    .then((user) => {
+      res.status(201).send(user);
+    })
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({
           message: "Invalid data. Please ensure all inputs are valid",
         });
       }
-      return res
+      if (err.code === 11000) {
+        return res.status(CONFLICT).send({ message: "Email already exists" });
+      }
+      res
         .status(SERVER_ERROR)
-        .send({ message: "An error occurred while creating the user." });
+        .send({ message: "An error occurred while creating the user" });
     });
 };
 
@@ -49,4 +67,28 @@ const getUser = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUser };
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.status(200).send({ token });
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.message === "Incorrect email or password") {
+        return res.status(401).send({ message: "Incorrect email or password" });
+      }
+      if (err.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({
+          message: "Invalid data. Please ensure all inputs are valid",
+        });
+      }
+      return res.status(SERVER_ERROR).send({ message: "Server Error" });
+    });
+};
+
+module.exports = { getUsers, createUser, getUser, login };

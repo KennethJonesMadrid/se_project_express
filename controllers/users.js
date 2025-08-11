@@ -7,11 +7,13 @@ const {
   NOT_FOUND,
   SERVER_ERROR,
   CONFLICT,
+  UNAUTHORIZED,
 } = require("../utils/errors");
 
 const { JWT_SECRET } = require("../utils/config");
 
-const getUsers = (req, res) => User.find({})
+const getUsers = (req, res) =>
+  User.find({})
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
@@ -83,7 +85,9 @@ const login = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.message === "Incorrect email or password") {
-        return res.status(401).send({ message: "Incorrect email or password" });
+        return res
+          .status(UNAUTHORIZED)
+          .send({ message: "Incorrect email or password" });
       }
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({

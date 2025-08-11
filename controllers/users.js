@@ -11,8 +11,7 @@ const {
 
 const { JWT_SECRET } = require("../utils/config");
 
-const getUsers = (req, res) => {
-  User.find({})
+const getUsers = (req, res) => User.find({})
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
@@ -20,20 +19,17 @@ const getUsers = (req, res) => {
         .status(SERVER_ERROR)
         .send({ message: "Unable to retrieve users at the moment" });
     });
-};
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
 
-  bcrypt
-    .hash(req.body.password, 10)
-    .then((hash) => {
-      return User.create({ name, avatar, email, password: hash });
-    })
+  return bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
       const userObject = user.toObject();
       delete userObject.password;
-      res.status(201).send(userObject);
+      return res.status(201).send(userObject);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -44,7 +40,7 @@ const createUser = (req, res) => {
       if (err.code === 11000) {
         return res.status(CONFLICT).send({ message: "Email already exists" });
       }
-      res
+      return res
         .status(SERVER_ERROR)
         .send({ message: "An error occurred while creating the user" });
     });
@@ -52,7 +48,7 @@ const createUser = (req, res) => {
 
 const getCurrentUser = (req, res) => {
   const userId = req.user._id;
-  User.findById(userId)
+  return User.findById(userId)
     .orFail()
     .then((user) => res.status(200).send(user))
     .catch((err) => {
@@ -82,7 +78,7 @@ const login = (req, res) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.status(200).send({ token });
+      return res.status(200).send({ token });
     })
     .catch((err) => {
       console.error(err);
@@ -102,7 +98,7 @@ const updateCurrentUser = (req, res) => {
   const { name, avatar } = req.body;
   const userId = req.user._id;
 
-  User.findByIdAndUpdate(
+  return User.findByIdAndUpdate(
     userId,
     { name, avatar },
     { new: true, runValidators: true }

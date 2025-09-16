@@ -9,20 +9,21 @@ const {
   CONFLICT,
   UNAUTHORIZED,
 } = require("../utils/errors");
+const BadRequestError = require("../errors/bad-request-err");
+const ConflictError = require("../errors/conflict-err");
+const NotFoundError = require("../errors/not-found-err");
+const UnauthorizedError = require("../errors/unauthorized-err");
 
 const { JWT_SECRET } = require("../utils/config");
 
-const getUsers = (req, res) =>
+const getUsers = (req, res, next) =>
   User.find({})
     .then((users) => res.status(200).send(users))
     .catch((err) => {
-      console.error(err);
-      return res
-        .status(SERVER_ERROR)
-        .send({ message: "Unable to retrieve users at the moment" });
+      next(err);
     });
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   return bcrypt
@@ -35,45 +36,36 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({
-          message: "Invalid data. Please ensure all inputs are valid",
-        });
+        return next(new BadRequestError("Invalid data"));
       }
       if (err.code === 11000) {
-        return res.status(CONFLICT).send({ message: "Email already exists" });
+        return next(new ConflictError("Email already exists"));
       }
-      return res
-        .status(SERVER_ERROR)
-        .send({ message: "An error occurred while creating the user" });
+      return next(err);
     });
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
   return User.findById(userId)
     .orFail()
     .then((user) => res.status(200).send(user))
     .catch((err) => {
-      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
+        return next(new NotFoundError("User not found"));
       }
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
+        return next(new BadRequestError("Invalid user ID"));
       }
-      return res
-        .status(SERVER_ERROR)
-        .send({ message: "An error occurred while retrieving the user." });
+      return next(err);
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Email and password are required fields" });
+    throw new BadRequestError("Email and password are required fields");
   }
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -83,22 +75,21 @@ const login = (req, res) => {
       return res.status(200).send({ token });
     })
     .catch((err) => {
-      console.error(err);
       if (err.message === "Incorrect email or password") {
-        return res
-          .status(UNAUTHORIZED)
-          .send({ message: "Incorrect email or password" });
+        return next(new UnauthorizedError("Incorrect email or password"));
       }
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({
-          message: "Invalid data. Please ensure all inputs are valid",
-        });
+        return next(
+          new BadRequestError(
+            "Invalid data. Please ensure all inputs are valid"
+          )
+        );
       }
-      return res.status(SERVER_ERROR).send({ message: "Server Error" });
+      return next(err);
     });
 };
 
-const updateCurrentUser = (req, res) => {
+const updateCurrentUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const userId = req.user._id;
 
@@ -112,19 +103,20 @@ const updateCurrentUser = (req, res) => {
       res.status(200).send(updatedUser);
     })
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({
-          message: "Invalid data. Please make sure all input are valid",
-        });
+        return next(
+          new BadRequestError(
+            "Invalid data. Please make sure all input are valid"
+          )
+        );
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
+        return next(new NotFoundError("User not found"));
       }
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user" });
+        return next(new BadRequestError("Invalid user"));
       }
-      return res.status(SERVER_ERROR).send({ message: "Server Error" });
+      return next(err);
     });
 };
 

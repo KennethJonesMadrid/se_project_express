@@ -1,7 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const { errors } = require("celebrate");
 const mainRouter = require("./routes/index");
+const SERVER_ERROR = require("./utils/errors");
+const errorHandler = require("./middlewares/error-handler");
+const { requestLogger, errorLogger } = require("./middlewares/logger");
 
 const app = express();
 
@@ -20,7 +24,15 @@ mongoose
 
 app.use(express.json());
 
+app.use(requestLogger);
+
 app.use("/", mainRouter);
+
+app.use(errorLogger);
+
+app.use(errors());
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

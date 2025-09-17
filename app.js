@@ -1,9 +1,10 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const { errors } = require("celebrate");
 const mainRouter = require("./routes/index");
-const SERVER_ERROR = require("./utils/errors");
 const errorHandler = require("./middlewares/error-handler");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 

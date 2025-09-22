@@ -6,6 +6,12 @@ const itemRouter = require("./clothingItems");
 const { NOT_FOUND } = require("../utils/errors");
 const auth = require("../middlewares/auth");
 
+app.get("/crash-test", () => {
+  setTimeout(() => {
+    throw new Error("Server will crash now");
+  }, 0);
+});
+
 router.post("/signin", login);
 router.post("/signup", createUser);
 

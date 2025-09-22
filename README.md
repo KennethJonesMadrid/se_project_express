@@ -18,3 +18,8 @@ This project is the backend server for the WTWR app — a weather-based clothing
 - MongoDB with Mongoose
 - ESLint for code style
 - Postman for testing endpoints
+
+## Deployment
+
+- **Backend domain:** [https://api.vistete.twilightparadox.com](https://api.vistete.twilightparadox.com)
+- **Frontend GitHub repo:** [WTWR Frontend](https://github.com/KennethJonesMadrid/se_project_react.git)

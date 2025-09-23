@@ -6,7 +6,7 @@ const itemRouter = require("./clothingItems");
 const { NOT_FOUND } = require("../utils/errors");
 const auth = require("../middlewares/auth");
 
-app.get("/crash-test", () => {
+router.get("/crash-test", () => {
   setTimeout(() => {
     throw new Error("Server will crash now");
   }, 0);

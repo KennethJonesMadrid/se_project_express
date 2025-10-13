@@ -5,6 +5,10 @@ const { login, createUser } = require("../controllers/users");
 const itemRouter = require("./clothingItems");
 const { NOT_FOUND } = require("../utils/errors");
 const auth = require("../middlewares/auth");
+const {
+  validateUserBody,
+  validateAuthentication,
+} = require("../middlewares/validation");
 
 router.get("/crash-test", () => {
   setTimeout(() => {
@@ -12,8 +16,8 @@ router.get("/crash-test", () => {
   }, 0);
 });
 
-router.post("/signin", login);
-router.post("/signup", createUser);
+router.post("/signin", validateAuthentication, login);
+router.post("/signup", validateUserBody, createUser);
 
 router.use("/items", itemRouter);
 

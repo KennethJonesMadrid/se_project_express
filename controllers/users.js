@@ -9,13 +9,6 @@ const UnauthorizedError = require("../errors/unauthorized-err");
 
 const { JWT_SECRET } = require("../utils/config");
 
-const getUsers = (req, res, next) =>
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      next(err);
-    });
-
 const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
@@ -114,7 +107,6 @@ const updateCurrentUser = (req, res, next) => {
 };
 
 module.exports = {
-  getUsers,
   createUser,
   getCurrentUser,
   login,

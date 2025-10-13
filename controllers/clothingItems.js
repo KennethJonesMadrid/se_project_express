@@ -1,16 +1,12 @@
 const ClothingItem = require("../models/clothingItem");
 const BadRequestError = require("../errors/bad-request-err");
-const ConflictError = require("../errors/conflict-err");
 const NotFoundError = require("../errors/not-found-err");
-const UnauthorizedError = require("../errors/unauthorized-err");
 const ForbiddenError = require("../errors/forbidden-err");
 
 const getItems = (req, res, next) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
-    .catch((err) => {
-      return next(err);
-    });
+    .catch((err) => next(err));
 };
 
 const createItem = (req, res, next) => {

@@ -9,6 +9,7 @@ const {
   validateUserBody,
   validateAuthentication,
 } = require("../middlewares/validation");
+const NotFoundError = require("../errors/not-found-err");
 
 router.get("/crash-test", () => {
   setTimeout(() => {
@@ -25,8 +26,8 @@ router.use(auth);
 
 router.use("/users", userRouter);
 
-router.use((req, res) => {
-  res.status(NOT_FOUND).send({ message: "Requested resource not found" });
+router.use((req, res, next) => {
+  next(new NotFoundError("Requested resource not found"));
 });
 
 module.exports = router;
